@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"os"
+	"strings"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
@@ -9,15 +11,23 @@ import (
 	_ "github.com/francisbouvier/pipes/src/store/etcd"
 )
 
+var (
+	Author       = "Francis Bouvier <francis.bouvier@gmail.com>"
+	Contributors = []string{
+		"Charles Raimbert <charles.raimbert@gmai.com>",
+	}
+	VERSION = "0.1.0"
+)
+
 func main() {
 
 	app := cli.NewApp()
 
 	app.Name = "pipes"
-	app.Author = "Francis Bouvier <francis.bouvier@gmail.com>"
-	app.Version = "0.1.0"
+	app.Author = strings.Join(append([]string{Author}, Contributors...), "\n   ")
+	app.Version = VERSION
 	app.Usage = "A micro-services framework"
-	app.Flags = []cli.Flag{logLevelFlag, serviceFlag}
+	app.Flags = []cli.Flag{logLevelFlag}
 
 	app.Before = func(c *cli.Context) error {
 		switch c.String("log") {
@@ -40,6 +50,13 @@ func main() {
 				if err := discovery.Initialize(c); err != nil {
 					log.Fatalln(err)
 				}
+			},
+		},
+		{
+			Name:  "version",
+			Usage: "pipes version",
+			Action: func(c *cli.Context) {
+				fmt.Println("pipes", VERSION)
 			},
 		},
 	}

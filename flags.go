@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-
 	"github.com/codegangsta/cli"
 )
 
@@ -10,12 +9,6 @@ var logLevelFlag = cli.StringFlag{
 	Name:  "log, l",
 	Value: "warn",
 	Usage: "Log verbose output (debug, info, warn).",
-}
-
-var serviceFlag = cli.StringFlag{
-	Name:  "service, s",
-	Value: "local",
-	Usage: "Service discovery.",
 }
 
 var nameFlag = cli.StringFlag{
