@@ -32,3 +32,8 @@ var daemonFlag = cli.BoolFlag{
 	Name:  "d",
 	Usage: "Run in daemon mode.",
 }
+
+var allFlag = cli.BoolFlag{
+	Name:  "a",
+	Usage: "Display all.",
+}

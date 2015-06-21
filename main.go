@@ -97,6 +97,16 @@ func main() {
 			},
 		},
 		{
+			Name:  "ps",
+			Usage: "List workflows",
+			Flags: []cli.Flag{allFlag},
+			Action: func(c *cli.Context) {
+				if err := controller.List(c); err != nil {
+					log.Fatalln(err)
+				}
+			},
+		},
+		{
 			Name:  "version",
 			Usage: "pipes version",
 			Action: func(c *cli.Context) {

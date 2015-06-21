@@ -102,6 +102,46 @@ func Run(c *cli.Context) error {
 	return nil
 }
 
+func List(c *cli.Context) error {
+	log.Debugln("Listing")
+
+	st, err := discovery.GetStore(c)
+	if err != nil {
+		return err
+	}
+	projects, err := st.List("projects", "")
+
+	all := c.Bool("a")
+	fmt.Printf("PROJECT ID\t\tPIPE\t\t\t\t\tSTATUS\t\tNAME\n")
+	for _, id := range projects {
+		p, err := GetProject(id, st)
+		if err != nil {
+			continue
+		}
+		if !all && !p.Running() {
+			continue
+		}
+		msg := p.ID[0:12]
+		msg += "\t\t"
+		pipes, err := p.GetPipes()
+		if err != nil {
+			return nil
+		}
+		msg += strings.Join(pipes, " | ")
+		msg += "\t\t\t"
+		if p.Running() {
+			msg += "Running"
+		} else {
+			msg += "Exited"
+		}
+		msg += "\t\t"
+		msg += p.Name
+		fmt.Println(msg)
+	}
+
+	return nil
+}
+
 func getProject(args []string, st store.Store) (*Project, error) {
 	var id string
 	var err error

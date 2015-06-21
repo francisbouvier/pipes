@@ -73,6 +73,29 @@ func GetProject(id string, st store.Store) (*Project, error) {
 	return p, nil
 }
 
+func (p *Project) nextService(service string, next []string, err error) ([]string, error) {
+	dir := fmt.Sprintf("projects/%s/services/%s", p.ID, service)
+	services, err := p.Store.List("next", dir)
+	if err != nil {
+		return next, err
+	}
+	if len(services) == 0 {
+		return next, nil
+	}
+	next = append(next, services[0])
+	return p.nextService(services[0], next, err)
+}
+
+func (p *Project) GetPipes() ([]string, error) {
+	pipe := []string{}
+	var err error
+	pipe, err = p.nextService("api", []string{}, nil)
+	if err != nil {
+		return pipe, err
+	}
+	return pipe, nil
+}
+
 func (p *Project) SetContainer(service string, container *engine.Container) error {
 	dir := fmt.Sprintf("projects/%s/services/%s/containers/", p.ID, service)
 	if err := p.Store.Write(container.Id, container.IP, dir); err != nil {
