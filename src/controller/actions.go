@@ -44,6 +44,7 @@ func Run(c *cli.Context) error {
 	if err = p.SetServices(services); err != nil {
 		return err
 	}
+	fmt.Printf("Project %s (%s)\n", p.ID, p.Name)
 
 	// Run
 	o, err := swarm.New(st)
@@ -51,7 +52,7 @@ func Run(c *cli.Context) error {
 		return err
 	}
 	ctr := Controller{orch: o, project: p}
-	_, err = ctr.LaunchAPI()
+	api, err := ctr.LaunchAPI()
 	if err != nil {
 		return err
 	}
@@ -60,7 +61,7 @@ func Run(c *cli.Context) error {
 			return err
 		}
 	}
+	fmt.Printf("API listening on: http://%s\n", api.Addr())
 
-	fmt.Printf("Project %s (%s)\n", p.ID, p.Name)
 	return nil
 }
