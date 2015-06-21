@@ -2,7 +2,7 @@ package discovery
 
 import (
 	"fmt"
-	
+
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/francisbouvier/pipes/src/engine"
@@ -10,6 +10,7 @@ import (
 )
 
 const IMAGE = "francisbouvier/wampace"
+const API_IMAGE = "francisbouvier/pipes_api"
 
 func wampRouter(eng swarm.Swarm) (*engine.Container, error) {
 	log.Debugf("Installing Wamp Router...\n")
@@ -37,12 +38,22 @@ func wampRouter(eng swarm.Swarm) (*engine.Container, error) {
 	}
 	err = eng.Run(container)
 	fmt.Printf("WAMP router on node: %s\n", container.Addr())
-	
+
 	// Write in the etcd store
 	err = eng.Store.Write("addr", container.Addr(), "router")
 	if err != nil {
+		return nil, err
+	}
+
+	// API Image
+	_, err = eng.GetImg(API_IMAGE)
+	if err != nil {
+		log.Debugf("Pulling image %s...\n", API_IMAGE)
+		_, err = eng.PullImg(API_IMAGE)
+		if err != nil {
 			return nil, err
-	}	
+		}
+	}
 
 	return container, err
 }
