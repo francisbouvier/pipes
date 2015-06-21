@@ -1,11 +1,14 @@
 package main
 
 import (
-	// "fmt"
 	"github.com/francisbouvier/pipes/src/builder"
-	// "os"
+	"os"
 )
 
 func main() {
-	builder.Build()
+
+	execPath_type_map := builder.AssociateExecWithType(os.Args[1:])
+
+	builder.BuildDockerImagesFromExec(&execPath_type_map)
+
 }
