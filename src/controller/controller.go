@@ -92,3 +92,18 @@ func (ctr *Controller) stopService(service string) error {
 	}
 	return nil
 }
+
+func (ctr *Controller) Stop() error {
+	for _, service := range ctr.project.Services {
+		if err := ctr.stopService(service); err != nil {
+			return err
+		}
+	}
+	if err := ctr.stopService("api"); err != nil {
+		return err
+	}
+	if err := ctr.project.Stop(); err != nil {
+		return err
+	}
+	return nil
+}

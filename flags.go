@@ -27,3 +27,8 @@ var controllerNameFlag = cli.StringFlag{
 	Name:  "name",
 	Usage: "Name of the project.",
 }
+
+var daemonFlag = cli.BoolFlag{
+	Name:  "d",
+	Usage: "Run in daemon mode.",
+}

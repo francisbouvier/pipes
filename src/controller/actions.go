@@ -12,7 +12,12 @@ import (
 )
 
 func Run(c *cli.Context) error {
-	log.Debugln("Running project")
+	daemon := c.Bool("d")
+	if daemon {
+		log.Debugln("Running project in daemon")
+	} else {
+		log.Debugln("Running project")
+	}
 
 	// Services
 	if len(c.Args()) == 0 {
@@ -63,6 +68,10 @@ func Run(c *cli.Context) error {
 	}
 	fmt.Printf("API listening on: http://%s\n", api.Addr())
 
+	if daemon {
+		return nil
+	}
+
 	// Query
 	query := c.Args()[1:]
 	if len(query) > 0 {
@@ -72,16 +81,8 @@ func Run(c *cli.Context) error {
 	}
 
 	// Stop
-	for _, service := range ctr.project.Services {
-		if err = ctr.stopService(service); err != nil {
-			return err
-		}
-	}
-	if err = ctr.stopService("api"); err != nil {
-		return err
-	}
-	if err = ctr.project.Stop(); err != nil {
-		return err
+	if err = ctr.Stop(); err != nil {
+		return nil
 	}
 
 	return nil
