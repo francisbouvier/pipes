@@ -62,7 +62,7 @@ func main() {
 			Usage: "Build a micro-service",
 			Flags: []cli.Flag{nameFlag, serversFlag},
 			Action: func(c *cli.Context) { 
-				if err := builder.BuildDockerImagesFromExec(c.Args()); err != nil {
+				if err := builder.BuildDockerImagesFromExec(c.Args(), c); err != nil {
 					log.Fatalln(err)
 				}
 			},

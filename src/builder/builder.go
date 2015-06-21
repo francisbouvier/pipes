@@ -9,19 +9,34 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/codegangsta/cli"
 
 	"github.com/francisbouvier/pipes/src/engine/docker"
+	"github.com/francisbouvier/pipes/src/discovery"
 )
 
 type categorization struct {
 	execType        string
 	baseDockerImage string
+	command         string
 }
 
 var (
-	pythonCategory       = categorization{execType: "python", baseDockerImage: "python"}
-	rubyCategory         = categorization{execType: "ruby", baseDockerImage: "ruby"}
-	simpleBinaryCategory = categorization{execType: "binary", baseDockerImage: "microbox/scratch"}
+	pythonCategory       = categorization{
+		execType: "python",
+		baseDockerImage: "python",
+		command: "python ",
+	}
+	rubyCategory         = categorization{
+		execType: "ruby", 
+		baseDockerImage: "ruby",
+		command: "ruby ",
+	}
+	simpleBinaryCategory = categorization{
+		execType: "binary",
+		baseDockerImage: "microbox/scratch",
+		command: "",
+	}
 )
 
 func check(e error) {
@@ -31,8 +46,29 @@ func check(e error) {
 	}
 }
 
-func BuildDockerImagesFromExec(exec_paths []string) (err error){ //execPath_category_map *map[string]categorization) {
-	execs_map := AssociateExecWithType(exec_paths)
+func BuildDockerImagesFromExec(args []string, c *cli.Context) (err error){ //execPath_category_map *map[string]categorization) {
+	var exec_paths []string
+
+	// Get input mode
+	for _,arg := range args {
+		arg_split_array := strings.SplitN(arg, ":", -1)
+		service_path := arg_split_array[0]
+		exec_paths = append(exec_paths, service_path)
+		service_name_array := strings.SplitN(service_path, "/", -1)
+		service_name := service_name_array[len(service_name_array)-1]
+		input_mode := "stdin"
+		if len(arg_split_array) > 1 { 
+			input_mode = arg_split_array[1]
+		}
+		fmt.Printf("service_name: %s\n", service_name)
+		fmt.Printf("input_mode: %s\n", input_mode)
+		WriteModeInStore(c, service_name, input_mode)
+	}
+	
+	execs_map, err := AssociateExecWithType(c, exec_paths)
+	if err != nil {
+		log.Fatalln(err)
+	}	
 	fmt.Println()
 
 	// Iterating through the map
@@ -50,7 +86,7 @@ func BuildDockerImagesFromExec(exec_paths []string) (err error){ //execPath_cate
 }
 
 // Create a Dockerfile per executable passed through CLI
-func AssociateExecWithType(exec_paths []string) (execPath_category_map map[string]categorization) {
+func AssociateExecWithType(c *cli.Context, exec_paths []string) (execPath_category_map map[string]categorization, err error) {
 	// var execPath_type_map map[string]string
 	execPath_category_map = make(map[string]categorization)
 	for _, exec_path := range exec_paths {
@@ -66,9 +102,43 @@ func AssociateExecWithType(exec_paths []string) (execPath_category_map map[strin
 			// fmt.Printf("file %s is a binary file\n", exec_path)
 		}
 		fmt.Printf("File %s is a %s file, and will be dockerized from the base image '%s'\n", exec_path, execPath_category_map[exec_path].execType, execPath_category_map[exec_path].baseDockerImage)
+		service_name_array := strings.SplitN(exec_path, "/", -1)
+		service_name := service_name_array[len(service_name_array)-1]
+		fmt.Printf("name: %s\n", service_name)
+		command := fmt.Sprintf(execPath_category_map[exec_path].command+"%s", service_name)
+		fmt.Printf("command: %s\n", command)
+		err := WriteCommandInStore(c, service_name, command)
+		if err != nil {
+			return execPath_category_map, err
+		}
+
 	}
 
 	return
+}
+
+func WriteCommandInStore(c *cli.Context, service_name string, command string) (error) {
+	st, err := discovery.GetStore(c)
+	if err != nil {
+		return err
+	}
+	err = st.Write("command", command, fmt.Sprintf("services/%s", service_name))
+	if err != nil {
+			return err
+	}	
+	return err
+}
+
+func WriteModeInStore(c *cli.Context, service_name string, input_mode string) (error) {
+	st, err := discovery.GetStore(c)
+	if err != nil {
+		return err
+	}
+	err = st.Write("input_mode", input_mode, fmt.Sprintf("services/%s", service_name))
+	if err != nil {
+		return err
+	}	
+	return err
 }
 
 // Set a temp directory and cp the exec in it
