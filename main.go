@@ -78,6 +78,16 @@ func main() {
 			},
 		},
 		{
+			Name:  "query",
+			Usage: "Query a workfow",
+			Flags: []cli.Flag{daemonFlag, controllerNameFlag},
+			Action: func(c *cli.Context) {
+				if err := controller.Query(c); err != nil {
+					log.Fatalln(err)
+				}
+			},
+		},
+		{
 			Name:  "rm",
 			Usage: "Remove workfow",
 			Action: func(c *cli.Context) {

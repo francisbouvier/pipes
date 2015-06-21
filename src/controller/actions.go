@@ -9,6 +9,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/francisbouvier/pipes/src/discovery"
 	"github.com/francisbouvier/pipes/src/orch/swarm"
+	"github.com/francisbouvier/pipes/src/store"
 )
 
 func Run(c *cli.Context) error {
@@ -62,12 +63,14 @@ func Run(c *cli.Context) error {
 		fmt.Printf("Project %s (%s)\n", p.ID, p.Name)
 	}
 
-	// Run
+	// Controller
 	o, err := swarm.New(st)
 	if err != nil {
 		return err
 	}
 	ctr := Controller{orch: o, project: p}
+
+	// Run
 	api, err := ctr.LaunchAPI()
 	if err != nil {
 		return err
@@ -99,22 +102,17 @@ func Run(c *cli.Context) error {
 	return nil
 }
 
-func Remove(c *cli.Context) error {
-
-	// Project
-	st, err := discovery.GetStore(c)
-	if err != nil {
-		return err
-	}
+func getProject(args []string, st store.Store) (*Project, error) {
 	var id string
-	if len(c.Args()) == 0 {
+	var err error
+	if len(args) == 0 {
 		// Get main project
 		id, err = st.Read("main_project", "")
 		if err != nil {
-			return err
+			return nil, err
 		}
 	} else {
-		id = c.Args()[0]
+		id = args[0]
 		// Try by name
 		if realId, err := st.Read(id, "names"); err == nil {
 			id = realId
@@ -122,10 +120,58 @@ func Remove(c *cli.Context) error {
 	}
 	p, err := GetProject(id, st)
 	if err != nil {
-		return errors.New("Project does not exists")
+		return nil, errors.New("Project does not exists")
 	}
 	if !p.Running() {
-		return errors.New("Project is not running")
+		return nil, errors.New("Project is not running")
+	}
+	log.Debugln("Project:", p.ID)
+	return p, nil
+}
+
+func Query(c *cli.Context) error {
+
+	// Project
+	st, err := discovery.GetStore(c)
+	if err != nil {
+		return err
+	}
+	args := []string{}
+	if c.String("name") != "" {
+		args = append(args, c.String("name"))
+	}
+	p, err := getProject(args, st)
+	if err != nil {
+		return err
+	}
+
+	// Controller
+	o, err := swarm.New(st)
+	if err != nil {
+		return err
+	}
+	ctr := Controller{orch: o, project: p}
+
+	// Query
+	query := strings.Join(c.Args(), " ")
+	log.Infoln("Query for:", query)
+	if err = ctr.project.Query(query); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func Remove(c *cli.Context) error {
+
+	// Project
+	st, err := discovery.GetStore(c)
+	if err != nil {
+		return err
+	}
+	p, err := getProject(c.Args(), st)
+	if err != nil {
+		return nil
 	}
 
 	// Controller
