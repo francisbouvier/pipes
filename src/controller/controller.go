@@ -72,3 +72,23 @@ func (ctr *Controller) launchService(service string) error {
 	}
 	return nil
 }
+
+func (ctr *Controller) stopService(service string) error {
+	log.Infoln("Stopping:", service)
+	name := fmt.Sprintf("%s_%s", ctr.project.Name, service)
+	container, err := ctr.project.GetContainer(service)
+	if err != nil {
+		return err
+	}
+	container.Name = name
+	if err = ctr.orch.Stop(container); err != nil {
+		return err
+	}
+	if err = ctr.orch.Remove(container); err != nil {
+		return err
+	}
+	if err = ctr.project.RemoveContainer(service, container); err != nil {
+		return err
+	}
+	return nil
+}

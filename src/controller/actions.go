@@ -63,5 +63,26 @@ func Run(c *cli.Context) error {
 	}
 	fmt.Printf("API listening on: http://%s\n", api.Addr())
 
+	// Query
+	query := c.Args()[1:]
+	if len(query) > 0 {
+		if err = ctr.project.Query(strings.Join(query, " ")); err != nil {
+			return err
+		}
+	}
+
+	// Stop
+	for _, service := range ctr.project.Services {
+		if err = ctr.stopService(service); err != nil {
+			return err
+		}
+	}
+	if err = ctr.stopService("api"); err != nil {
+		return err
+	}
+	if err = ctr.project.Stop(); err != nil {
+		return err
+	}
+
 	return nil
 }
