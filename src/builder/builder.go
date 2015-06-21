@@ -60,7 +60,10 @@ func BuildDockerImagesFromExec(args []string, c *cli.Context) (err error){ //exe
 		if len(arg_split_array) > 1 { 
 			input_mode = arg_split_array[1]
 		}
-		WriteModeInStore(c, service_name, input_mode)
+		err = WriteModeInStore(c, service_name, input_mode)
+		if err != nil {
+			return err
+		}
 	}
 	
 	execs_map, err := AssociateExecWithType(c, exec_paths)
