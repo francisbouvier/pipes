@@ -28,7 +28,15 @@ func Run(c *cli.Context) error {
 		return errors.New(msg)
 	}
 	services := []string{}
-	for _, service := range strings.Split(c.Args()[0], "|") {
+	var query string
+	for i, service := range strings.Split(c.Args()[0], "|") {
+		if i == 0 {
+			serviceFull := strings.Split(service, " ")
+			service = serviceFull[0]
+			if len(serviceFull) > 1 {
+				query = strings.Join(serviceFull[1:], " ")
+			}
+		}
 		service = strings.TrimSpace(service)
 		services = append(services, service)
 	}
@@ -77,9 +85,8 @@ func Run(c *cli.Context) error {
 	}
 
 	// Query
-	query := c.Args()[1:]
-	if len(query) > 0 {
-		if err = ctr.project.Query(strings.Join(query, " ")); err != nil {
+	if query != "" {
+		if err = ctr.project.Query(query); err != nil {
 			return err
 		}
 	}
