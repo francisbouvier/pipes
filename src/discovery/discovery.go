@@ -45,11 +45,6 @@ func Initialize(c *cli.Context) (err error) {
 			servers = append(servers, serverFullAddr)
 		}
 	}
-	// fmt.Printf("len %d\n", len(servers))
-	// for _,s := range servers {
-	// 		fmt.Printf("%s\n", s)
-	// }
-	// return
 
 	// Store
 	st, err := store.Get("etcd")
