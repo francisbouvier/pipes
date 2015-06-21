@@ -78,6 +78,15 @@ func main() {
 			},
 		},
 		{
+			Name:  "rm",
+			Usage: "Remove workfow",
+			Action: func(c *cli.Context) {
+				if err := controller.Remove(c); err != nil {
+					log.Fatalln(err)
+				}
+			},
+		},
+		{
 			Name:  "version",
 			Usage: "pipes version",
 			Action: func(c *cli.Context) {

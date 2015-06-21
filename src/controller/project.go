@@ -52,6 +52,9 @@ func NewProject(name string, st store.Store) (*Project, error) {
 	if err = p.Store.Write(p.Name, p.ID, "names"); err != nil {
 		return p, err
 	}
+	if err = p.Store.Write("main_project", p.ID, ""); err != nil {
+		return p, err
+	}
 	return p, nil
 }
 
@@ -85,7 +88,7 @@ func (p *Project) GetContainer(service string) (*engine.Container, error) {
 		return nil, err
 	}
 	if len(contID) == 0 {
-		return nil, err
+		return nil, errors.New(fmt.Sprintf("No containers for %s\n", service))
 	}
 	return &engine.Container{Id: contID[0]}, nil
 }

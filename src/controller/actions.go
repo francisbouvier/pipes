@@ -91,3 +91,48 @@ func Run(c *cli.Context) error {
 
 	return nil
 }
+
+func Remove(c *cli.Context) error {
+
+	// Project
+	st, err := discovery.GetStore(c)
+	if err != nil {
+		return err
+	}
+	var id string
+	if len(c.Args()) == 0 {
+		// Get main project
+		id, err = st.Read("main_project", "")
+		if err != nil {
+			return err
+		}
+	} else {
+		id = c.Args()[0]
+		// Try by name
+		if realId, err := st.Read(id, "names"); err == nil {
+			id = realId
+		}
+	}
+	p, err := GetProject(id, st)
+	if err != nil {
+		return errors.New("Project does not exists")
+	}
+	if !p.Running() {
+		return errors.New("Project is not running")
+	}
+
+	// Controller
+	o, err := swarm.New(st)
+	if err != nil {
+		return err
+	}
+	ctr := Controller{orch: o, project: p}
+
+	// Stop
+	if err = ctr.Stop(); err != nil {
+		return nil
+	}
+	fmt.Println("Project deleted:", p.ID)
+
+	return nil
+}
