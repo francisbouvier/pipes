@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/codegangsta/cli"
 	"github.com/francisbouvier/pipes/src/orch"
@@ -36,6 +37,13 @@ func Initialize(c *cli.Context) (err error) {
 			dockerHost = "unix:///var/run/docker.sock"
 		}
 		servers = append(servers, dockerHost)
+	} else if len(servers) == 1 {
+		serversArray := strings.SplitN(servers[0], ",", -1)
+		servers = []string{}
+		for _, server := range serversArray {
+			serverFullAddr := fmt.Sprintf("tcp://%s:2375", server)
+			servers = append(servers, serverFullAddr)
+		}
 	}
 
 	// Store
