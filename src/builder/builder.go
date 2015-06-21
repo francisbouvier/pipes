@@ -2,12 +2,15 @@ package builder
 
 import (
 	"fmt"
-	"github.com/francisbouvier/pipes/src/engine/docker"
 	"io/ioutil"
 	"math/rand"
 	"os"
 	"strings"
 	"time"
+
+	log "github.com/Sirupsen/logrus"
+
+	"github.com/francisbouvier/pipes/src/engine/docker"
 )
 
 type categorization struct {
@@ -28,19 +31,22 @@ func check(e error) {
 	}
 }
 
-func BuildDockerImagesFromExec(execPath_category_map *map[string]categorization) {
-	execs_map := *execPath_category_map
-	fmt.Printf("map len %d\n", len(execs_map))
+func BuildDockerImagesFromExec(exec_paths []string) (err error){ //execPath_category_map *map[string]categorization) {
+	execs_map := AssociateExecWithType(exec_paths)
+	fmt.Println()
 
 	// Iterating through the map
 	for execOriginalPath, category := range execs_map {
-		fmt.Printf("exec passed: %s, category associated: %s\n", execOriginalPath, category)
-
 		tmp_dir_path, new_exec_path, exec_file_name := SetTempDirectory(execOriginalPath)
 		imageName := CreateDockerfile(tmp_dir_path, new_exec_path, exec_file_name, category)
-		DockerBuild(tmp_dir_path, imageName)
-		fmt.Printf("\n\n\n")
+		err = DockerBuild(tmp_dir_path, imageName)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		fmt.Println()
 	}
+	fmt.Printf("Docker images successfully built...\n")
+	return
 }
 
 // Create a Dockerfile per executable passed through CLI
@@ -51,15 +57,17 @@ func AssociateExecWithType(exec_paths []string) (execPath_category_map map[strin
 		switch {
 		case strings.HasSuffix(exec_path, ".py"):
 			execPath_category_map[exec_path] = pythonCategory
-			fmt.Printf("file %s is a python file\n", exec_path)
+			// fmt.Printf("file %s is a python file\n", exec_path)
 		case strings.HasSuffix(exec_path, ".rb"):
 			execPath_category_map[exec_path] = rubyCategory
-			fmt.Printf("file %s is a ruby file\n", exec_path)
+			// fmt.Printf("file %s is a ruby file\n", exec_path)
 		default:
 			execPath_category_map[exec_path] = simpleBinaryCategory
-			fmt.Printf("file %s is a bin\n", exec_path)
+			// fmt.Printf("file %s is a binary file\n", exec_path)
 		}
+		fmt.Printf("File %s is a %s file, and will be dockerized from the base image '%s'\n", exec_path, execPath_category_map[exec_path].execType, execPath_category_map[exec_path].baseDockerImage)
 	}
+
 	return
 }
 
@@ -100,11 +108,6 @@ func CreateDockerfile(tmp_dir_path string, new_exec_path string, exec_file_name 
 	execPathDest := fmt.Sprintf("bin/%s", exec_file_name)
 	entryPoint := fmt.Sprintf("bin/%s", exec_file_name)
 
-	fmt.Printf("BASE_IMAGE: %s\n", category.baseDockerImage)
-	fmt.Printf("EXEC_PATH_SRC: %s\n", new_exec_path)
-	fmt.Printf("EXEC_PATH_DEST: %s\n", execPathDest)
-	fmt.Printf("entrypoint: %s\n", entryPoint)
-
 	// cp the templates/Dockerfile into the tmp dir
 	wd, _ := os.Getwd()
 	oldTemplateDockerfilePath := wd + "/src/builder/templates/Dockerfile"
@@ -128,21 +131,20 @@ func CreateDockerfile(tmp_dir_path string, new_exec_path string, exec_file_name 
 	replaceEntrypoint := strings.NewReplacer("<ENTRYPOINT>", entryPoint)
 	DockerfileStringReplaced = replaceEntrypoint.Replace(DockerfileStringReplaced)
 
-	fmt.Printf("%s\n", DockerfileStringReplaced)
 	// write in the Dockerfile the actual content with replaced values
 	DockerfileBytesReplaced := []byte(DockerfileStringReplaced)
 	err2 := ioutil.WriteFile(newDockerfilePath, DockerfileBytesReplaced, 0644)
-	fmt.Printf("newDockeriflePath: %s\n", newDockerfilePath)
 	check(err2)
 
 	return
 }
 
 // Launch a docker build from a Dockerfile
-func DockerBuild(tmp_dir_path, imageName string) {
-	fmt.Printf("Building Docker image named %s from Dockerfile located at %s\n", imageName, tmp_dir_path)
+func DockerBuild(tmp_dir_path, imageName string) (err error) {
+	fmt.Printf("Building Docker image named '%s' from Dockerfile located at %s/Dockerfile\n", imageName, tmp_dir_path)
 	d, e := docker.New("tcp://192.168.59.103:2375", "")
 	check(e)
-	_, err := d.BuildImg(imageName, tmp_dir_path)
+	_, err = d.BuildImg(imageName, tmp_dir_path)
 	check(err)
+	return
 }
