@@ -38,6 +38,9 @@ func (ctr *Controller) LaunchAPI() (*engine.Container, error) {
 	}
 	dir := fmt.Sprintf("projects/%s/services/api", ctr.project.ID)
 	err = ctr.project.Store.Write("addr", container.Addr(), dir)
+	if err = ctr.project.SetContainer("api", container); err != nil {
+		return container, err
+	}
 	log.Infoln("Running API on:", container.Addr())
 	return container, err
 }
@@ -64,9 +67,7 @@ func (ctr *Controller) launchService(service string) error {
 	if err := ctr.orch.Run(container); err != nil {
 		return err
 	}
-
-	dir := fmt.Sprintf("projects/%s/services/%s/containers/", ctr.project.ID, service)
-	if err := ctr.project.Store.Write(container.Id, container.IP, dir); err != nil {
+	if err := ctr.project.SetContainer(service, container); err != nil {
 		return err
 	}
 	return nil

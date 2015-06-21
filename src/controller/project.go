@@ -7,6 +7,7 @@ import (
 	_ "github.com/Sirupsen/logrus"
 	"github.com/docker/docker/pkg/namesgenerator"
 	"github.com/docker/docker/pkg/stringid"
+	"github.com/francisbouvier/pipes/src/engine"
 	"github.com/francisbouvier/pipes/src/store"
 )
 
@@ -61,6 +62,26 @@ func GetProject(id string, st store.Store) (*Project, error) {
 		return p, err
 	}
 	return p, nil
+}
+
+func (p *Project) SetContainer(service string, container *engine.Container) error {
+	dir := fmt.Sprintf("projects/%s/services/%s/containers/", p.ID, service)
+	if err := p.Store.Write(container.Id, container.IP, dir); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *Project) GetContainer(service string) (*engine.Container, error) {
+	dir := fmt.Sprintf("projects/%s/services/%s", p.ID, service)
+	contID, err := p.Store.List("containers", dir)
+	if err != nil {
+		return nil, err
+	}
+	if len(contID) == 0 {
+		return nil, err
+	}
+	return &engine.Container{Id: contID[0]}, nil
 }
 
 func (p *Project) SetServices(services []string) error {
