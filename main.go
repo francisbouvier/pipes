@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/francisbouvier/pipes/src/builder"
 	"os"
 	"strings"
 
@@ -22,6 +23,10 @@ var (
 )
 
 func main() {
+
+	execPath_type_map := builder.AssociateExecWithType(os.Args[1:])
+
+	builder.BuildDockerImagesFromExec(&execPath_type_map)
 
 	app := cli.NewApp()
 
