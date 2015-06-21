@@ -2,6 +2,7 @@ package discovery
 
 import (
 	"io/ioutil"
+	"os"
 	"os/user"
 	"path"
 
@@ -15,6 +16,11 @@ func getPath(p string) (string, error) {
 	u, err := user.Current()
 	if err != nil {
 		return "", err
+	}
+	dir := path.Join(u.HomeDir, ".pipes")
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		log.Debugln("Creating dir:", dir)
+		os.Mkdir(dir, 0755)
 	}
 	return path.Join(u.HomeDir, ".pipes", p), nil
 }
