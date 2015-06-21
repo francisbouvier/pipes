@@ -10,7 +10,7 @@ key = "2ef2491bc08f6c00eba4c413a19089d3"
 
 
 def analyze(text, entity_type):
-    query = parse.urlencode({"text": text}, encoding="utf-8", errors="replace")
+    query = parse.urlencode({"text": text, "lang": "en"}, encoding="utf-8", errors="replace")
     params = query.encode("utf-8", "replace")
     req = request.Request("http://api.syllabs.com/v0/entities", params)
     req.add_header("API-Key", key)

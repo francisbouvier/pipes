@@ -8,10 +8,10 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 
+	"github.com/francisbouvier/pipes/src/builder"
 	"github.com/francisbouvier/pipes/src/controller"
 	"github.com/francisbouvier/pipes/src/discovery"
 	_ "github.com/francisbouvier/pipes/src/store/etcd"
-	"github.com/francisbouvier/pipes/src/builder"
 )
 
 var (
@@ -50,8 +50,8 @@ func main() {
 			Usage: "Initiate a cluster",
 			Flags: []cli.Flag{nameFlag, serversFlag},
 			Action: func(c *cli.Context) {
-				
-				err := discovery.Initialize(c); 
+
+				err := discovery.Initialize(c)
 				if err != nil {
 					log.Fatalln(err)
 				}
@@ -61,7 +61,7 @@ func main() {
 			Name:  "build",
 			Usage: "Build a micro-service",
 			Flags: []cli.Flag{nameFlag, serversFlag},
-			Action: func(c *cli.Context) { 
+			Action: func(c *cli.Context) {
 				if err := builder.BuildDockerImagesFromExec(c.Args(), c); err != nil {
 					log.Fatalln(err)
 				}
@@ -70,9 +70,18 @@ func main() {
 		{
 			Name:  "run",
 			Usage: "Run a workfow",
-			Flags: []cli.Flag{controllerNameFlag},
+			Flags: []cli.Flag{daemonFlag, controllerNameFlag},
 			Action: func(c *cli.Context) {
 				if err := controller.Run(c); err != nil {
+					log.Fatalln(err)
+				}
+			},
+		},
+		{
+			Name:  "rm",
+			Usage: "Remove workfow",
+			Action: func(c *cli.Context) {
+				if err := controller.Remove(c); err != nil {
 					log.Fatalln(err)
 				}
 			},
