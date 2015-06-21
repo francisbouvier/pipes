@@ -20,7 +20,13 @@ What if we could just do the same in the Cloud as in our terminal ?
 service_1 | service_2 | service_3
 ```
 
-Enter **Pipes**, a micro-services distributed and fault-tolerant tool :
+Enter **Pipes**, a micro-services distributed and fault-tolerant tool.
+
+## Screencast
+
+[![asciicast](https://asciinema.org/a/bk94tkk5w1zjxja1vv0pipl7s.png)](https://asciinema.org/a/bk94tkk5w1zjxja1vv0pipl7s)
+
+## CLI
 
 ```sh
 # 1. Get started
