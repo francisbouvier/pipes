@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 	"strings"
+	"github.com/francisbouvier/pipes/src/engine/docker"
 )
 
 type categorization struct {
@@ -22,6 +23,7 @@ var (
 
 func check(e error) {
     if e != nil {
+    	fmt.Printf("%s\n", e)
         panic(e)
     }
 }
@@ -90,11 +92,14 @@ func SetTempDirectory(old_exec_path string) (tmp_dir_path, new_exec_path, exec_f
 
 // Create in the temp dir a Dockerfile proper to the exec type
 func CreateDockerfile(tmp_dir_path string, new_exec_path string, exec_file_name string, category categorization) {
+	execPathDest := fmt.Sprintf("bin/%s", exec_file_name)
+	entryPoint := fmt.Sprintf("bin/%s", exec_file_name)
 
-	fmt.Printf("%s\n", tmp_dir_path)
-	fmt.Printf("EXEC_PATH_SRC: %s\n", new_exec_path)
-	fmt.Printf("%s\n", exec_file_name)
 	fmt.Printf("BASE_IMAGE: %s\n", category.baseDockerImage)
+	fmt.Printf("EXEC_PATH_SRC: %s\n", new_exec_path)
+	fmt.Printf("EXEC_PATH_DEST: %s\n", execPathDest)
+	fmt.Printf("entrypoint: %s\n", entryPoint)
+	
 
 	// cp the templates/Dockerfile into the tmp dir
 	wd, _ := os.Getwd()
@@ -102,10 +107,10 @@ func CreateDockerfile(tmp_dir_path string, new_exec_path string, exec_file_name 
 	newExecPathDockerifle := tmp_dir_path + "/Dockerfile"
 	// fmt.Printf("oldExecPathDockerfile: %s\n", oldExecPathDockerfile)
 	fmt.Printf("newExecPathDockerfile: %s\n", newExecPathDockerifle)
-	os.Link(oldExecPathDockerfile, newExecPathDockerifle)
+	// os.Link(oldExecPathDockerfile, newExecPathDockerifle)
 
 	// read new Dockerfile
-	data, err := ioutil.ReadFile(newExecPathDockerifle)
+	data, err := ioutil.ReadFile(oldExecPathDockerfile)
 	check(err)
 	DockerfileString := string(data)
 
@@ -116,12 +121,13 @@ func CreateDockerfile(tmp_dir_path string, new_exec_path string, exec_file_name 
 	replaceExecPathSrc := strings.NewReplacer("<EXEC_PATH_SRC>", new_exec_path)
 	DockerfileStringReplaced = replaceExecPathSrc.Replace(DockerfileStringReplaced)
 	
-	replaceExecPathDest := strings.NewReplacer("<EXEC_PATH_DEST>", fmt.Sprintf("bin/%s", exec_file_name))
+	replaceExecPathDest := strings.NewReplacer("<EXEC_PATH_DEST>", execPathDest)
 	DockerfileStringReplaced = replaceExecPathDest.Replace(DockerfileStringReplaced)
 	
-	replaceEntrypoint := strings.NewReplacer("<ENTRYPOINT>", fmt.Sprintf("bin/%s", exec_file_name))
+	replaceEntrypoint := strings.NewReplacer("<ENTRYPOINT>", entryPoint)
 	DockerfileStringReplaced = replaceEntrypoint.Replace(DockerfileStringReplaced)
 	
+	fmt.Printf("%s\n", DockerfileStringReplaced)
 	// write in the Dockerfile the actual content with replaced values
 	DockerfileBytesReplaced := []byte(DockerfileStringReplaced)
     	err2 := ioutil.WriteFile(newExecPathDockerifle, DockerfileBytesReplaced, 0644)
@@ -129,6 +135,25 @@ func CreateDockerfile(tmp_dir_path string, new_exec_path string, exec_file_name 
 }
 
 // Launch a docker build from a Dockerfile
-func DockerBuild(tmp_dir_path string) {
+func DockerBuild(imageName, dockerfilePath string) {
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
