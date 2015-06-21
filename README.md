@@ -23,106 +23,32 @@ service_1 | service_2 | service_3
 Enter **Pipes**, a micro-services distributed and fault-tolerant tool :
 
 ```sh
-# 1. Start a project
-pipes start myproject
+# 1. Get started
+pipes init --servers <ip1,ip2,ip3>
 
-# 2. Add some micro-services
-pipes add service_1 service_3 service_3
-# you can add binary, script, Dockerfile, buildpack ...
+# 2. Build micro-services
+pipes build service_1 service_3 service_3
+# you can add binary or executable
+# >> Docker images will be build based on each executable
 
-# 3. Define the worflow of the micro-services using the classic '|'
-pipes link "service_1 | service_2 | service_3"
+# 3. Run the worflow of micro-services using the classic '|'
+pipes run "service_1 <some_arg> | service_2 | service_3"
+# >> Containers are spawned accross your cluster
+# >> pipes return the result of the workflow.
 
-# 4. Deploy and run the whole worflow across your servers
-pipes run
+# 3.bis. In daemon mode an API is automatically generated
+pipes run -d "service_1 | service_2 | service_3"
 
-# 5. Query your project through the CLI
+# 4. You can query the API through the CLI
 pipes query "some_data"
-# or through the API automatically generated for you project.
-curl -d "some_data" http://my_project/api/
-```
 
-## Features
+# 4.bis. Or through the API of the worflow
+curl -d query="some_data" http://<addr>/
+>> Job ID: <id>
+curl http://<addr>/jobs/<id>/
 
-**Easy to develop, test and deploy**
-
-*Pipes* is agnostic, you can <u>use and mix</u> micro-services in whatever language you use: Python, Ruby, Node, Java, Go, C, Perl, Bash, etc.
-
-*Pipes* is not intrusive, you don't have to add specific functions inside your code.
-
-In all cases your micro-services will behave in the exact same way:
-
-- in development, using the standard Unix `|`
-- in test, using *Pipes* locally or on tests servers
-- in production, using *Pipes* on your servers.
-
-**Distributed**
-
-The micro-services are deployed and distributed across your servers.
-
-You can start with only 1 server (or even locally) and add or remove more servers afterwards, *Pipes* will manage the rebalancing of the micro-services.
-
-*Pipes* handle the communication between each micro-service, no matter the server in which they are deployed.
-
-**Isolated**
-
-Each micro-service is built inside a Docker container.
-
-Docker containers allow micro-services to be isolated from each other and from the server, and ensure the reproductability of your worflow.
-
-**Scalable and loadbalanced**
-
-You can scale up or down the number of replicas for each micro-service, or for the whole project, *Pipes* will spawn or kill the replicas accordingly.
-
-*Pipes* loadbalance the workload across all the replicas of one micro-service.
-
-You can also auto-scale: *Pipes* will monitor each micro-service and scale them up or down if needed.
-
-**Fault-tolerant**
-
-If one micro-service crashes, *Pipes* will restart it automatically.
-
-If one server is down, *Pipes* will rebalance its micro-services to other healthy servers in the cluster.
-
-## Getting started
-
-*Pipes* is easy to use and has no dependancies.
-It's available for Linux, MacOSX and Windows.
-
-**1. Download**
-
-[Link of the binaries].
-
-**2.1. Local usage**
-
-You can test *Pipes* locally.
-
-You just need Docker in your computer (or boot2docker on MacOSX and Windows).
-
-```sh
-pipes init
-# It will look for $DOCKER_HOST environnment variable (boot2docker)
-# or use the local standard host ie. unix:///var/run/docker.sock
-```
-
-**2.2. Production usage**
-
-Docker must be running in each of your server, using the standard tcp port:
-
-```sh
-docker -d -H tcp://0.0.0.0:2375
-
-# Or for TLS support
-# docker -d -H tcp://0.0.0.0:2376
-```
-
-Then in your computer (or whatever machine which can acces your servers):
-
-```sh
-pipes init <ip1>:<port1> <ip2>:<port2> <ip3>:<port3>
-
-# For example
-pipes init 12.67.23.46:2375 12.89.04.48:2375 12.89.12.67:2375
+# 4. List your worklows
+pipes ps -a
 ```
 
 ## Architecture
