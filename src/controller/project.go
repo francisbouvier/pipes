@@ -11,9 +11,10 @@ import (
 )
 
 type Project struct {
-	ID    string
-	Name  string
-	Store store.Store
+	ID       string
+	Name     string
+	Store    store.Store
+	Services []string
 }
 
 func NewProject(name string, st store.Store) (*Project, error) {
@@ -47,7 +48,23 @@ func NewProject(name string, st store.Store) (*Project, error) {
 	return p, nil
 }
 
-func (p Project) SetServices(services []string) error {
+func GetProject(id string, st store.Store) (*Project, error) {
+	p := &Project{Store: st}
+	dir := fmt.Sprintf("projects/%s", id)
+	var err error
+	p.Name, err = p.Store.Read("name", dir)
+	if err != nil {
+		return p, err
+	}
+	p.Services, err = p.Store.List("services", dir)
+	if err != nil {
+		return p, err
+	}
+	return p, nil
+}
+
+func (p *Project) SetServices(services []string) error {
+	p.Services = services
 
 	services = append([]string{"api"}, services...)
 	for i, service := range services {
