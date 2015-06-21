@@ -10,15 +10,15 @@ import (
 	"github.com/francisbouvier/pipes/src/store"
 )
 
-type project struct {
+type Project struct {
 	ID    string
 	Name  string
 	Store store.Store
 }
 
-func NewProject(name string, st store.Store) (*project, error) {
+func NewProject(name string, st store.Store) (*Project, error) {
 	var err error
-	p := &project{Store: st}
+	p := &Project{Store: st}
 
 	// Name & ID
 	if name != "" {
@@ -47,7 +47,7 @@ func NewProject(name string, st store.Store) (*project, error) {
 	return p, nil
 }
 
-func (p project) SetServices(services []string) error {
+func (p Project) SetServices(services []string) error {
 
 	services = append([]string{"api"}, services...)
 	for i, service := range services {

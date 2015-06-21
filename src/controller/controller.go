@@ -6,5 +6,5 @@ import (
 
 type Controller struct {
 	orch    orch.Orch
-	project *project
+	project *Project
 }
