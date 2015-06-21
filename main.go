@@ -11,6 +11,7 @@ import (
 	"github.com/francisbouvier/pipes/src/controller"
 	"github.com/francisbouvier/pipes/src/discovery"
 	_ "github.com/francisbouvier/pipes/src/store/etcd"
+	"github.com/francisbouvier/pipes/src/builder"
 )
 
 var (
@@ -49,7 +50,19 @@ func main() {
 			Usage: "Initiate a cluster",
 			Flags: []cli.Flag{nameFlag, serversFlag},
 			Action: func(c *cli.Context) {
-				if err := discovery.Initialize(c); err != nil {
+				
+				err := discovery.Initialize(c); 
+				if err != nil {
+					log.Fatalln(err)
+				}
+			},
+		},
+		{
+			Name:  "build",
+			Usage: "Build a micro-service",
+			Flags: []cli.Flag{nameFlag, serversFlag},
+			Action: func(c *cli.Context) { 
+				if err := builder.BuildDockerImagesFromExec(c.Args()); err != nil {
 					log.Fatalln(err)
 				}
 			},
