@@ -54,6 +54,15 @@ func Initialize(c *cli.Context) (err error) {
 		return err
 	}
 
+	// Wamp Router
+	swarm, err := swarm.New(st)
+	if err != nil {
+		return err
+	}
+	if _, err = wampRouter(swarm); err != nil {
+		return err
+	}
+
 	cf.SetPool(name, st.Addr())
 	cf.SetMainPool(name)
 	if err = cf.Save(); err != nil {
