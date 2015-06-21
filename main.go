@@ -7,6 +7,8 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
+
+	"github.com/francisbouvier/pipes/src/controller"
 	"github.com/francisbouvier/pipes/src/discovery"
 	_ "github.com/francisbouvier/pipes/src/store/etcd"
 )
@@ -48,6 +50,16 @@ func main() {
 			Flags: []cli.Flag{nameFlag, serversFlag},
 			Action: func(c *cli.Context) {
 				if err := discovery.Initialize(c); err != nil {
+					log.Fatalln(err)
+				}
+			},
+		},
+		{
+			Name:  "run",
+			Usage: "Run a workfow",
+			Flags: []cli.Flag{controllerNameFlag},
+			Action: func(c *cli.Context) {
+				if err := controller.Run(c); err != nil {
 					log.Fatalln(err)
 				}
 			},
