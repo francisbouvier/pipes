@@ -137,14 +137,19 @@ func (st *Etcd) Initialize(token string, servers []string) error {
 
 	// Connect
 	log.Debugln("Connecting to store on:", addr)
+	st.New(addr)
+	// TODO: check cluster health instead of dirty sleep
+	time.Sleep(500 * time.Millisecond)
+	fmt.Println("Etcd store running on:", st.Addr())
+	st.Write("/projects", "", "")
+	return nil
+}
+
+func (st *Etcd) New(addr string) {
 	st.addr = addr
 	var addrs []string
 	st.nodes, addrs = getNodes(addr)
 	st.client = client.NewClient(addrs)
-	// TODO: check cluster health instead of dirty sleep
-	time.Sleep(500 * time.Millisecond)
-	fmt.Println("Etcd store running on:", st.Addr())
-	return nil
 }
 
 func (st Etcd) get(key, dir string) (resp *client.Response, err error) {

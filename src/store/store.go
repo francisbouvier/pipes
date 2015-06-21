@@ -7,6 +7,7 @@ import (
 
 type Store interface {
 	Initialize(string, []string) error
+	New(string)
 	Read(string, string) (string, error)
 	List(string, string) ([]string, error)
 	Write(string, string, string) error
