@@ -63,11 +63,19 @@ func Initialize(c *cli.Context) (err error) {
 	return nil
 }
 
-func MainPool(c *cli.Context) (name string, value string, err error) {
+func GetStore(c *cli.Context) (st store.Store, err error) {
 	cf, err := getConf(c)
 	if err != nil {
 		return
 	}
-	name, value, err = cf.GetMainPool()
+	_, addr, err := cf.GetMainPool()
+	if err != nil {
+		return
+	}
+	st, err = store.Get("etcd")
+	if err != nil {
+		return
+	}
+	st.New(addr)
 	return
 }
