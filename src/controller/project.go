@@ -49,8 +49,8 @@ func NewProject(name string, st store.Store) (*Project, error) {
 }
 
 func GetProject(id string, st store.Store) (*Project, error) {
-	p := &Project{Store: st}
-	dir := fmt.Sprintf("projects/%s", id)
+	p := &Project{ID: id, Store: st}
+	dir := fmt.Sprintf("projects/%s", p.ID)
 	var err error
 	p.Name, err = p.Store.Read("name", dir)
 	if err != nil {
