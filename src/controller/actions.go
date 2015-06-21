@@ -50,7 +50,16 @@ func Run(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	_ = Controller{orch: o, project: p}
+	ctr := Controller{orch: o, project: p}
+	_, err = ctr.LaunchAPI()
+	if err != nil {
+		return err
+	}
+	for _, service := range ctr.project.Services {
+		if err = ctr.launchService(service); err != nil {
+			return err
+		}
+	}
 
 	fmt.Printf("Project %s (%s)\n", p.ID, p.Name)
 	return nil
