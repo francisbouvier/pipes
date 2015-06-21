@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/francisbouvier/pipes/src/builder"
 	"fmt"
+	"github.com/francisbouvier/pipes/src/builder"
 	"os"
 	"strings"
 
