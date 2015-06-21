@@ -60,8 +60,6 @@ func BuildDockerImagesFromExec(args []string, c *cli.Context) (err error){ //exe
 		if len(arg_split_array) > 1 { 
 			input_mode = arg_split_array[1]
 		}
-		fmt.Printf("service_name: %s\n", service_name)
-		fmt.Printf("input_mode: %s\n", input_mode)
 		WriteModeInStore(c, service_name, input_mode)
 	}
 	
@@ -104,9 +102,7 @@ func AssociateExecWithType(c *cli.Context, exec_paths []string) (execPath_catego
 		fmt.Printf("File %s is a %s file, and will be dockerized from the base image '%s'\n", exec_path, execPath_category_map[exec_path].execType, execPath_category_map[exec_path].baseDockerImage)
 		service_name_array := strings.SplitN(exec_path, "/", -1)
 		service_name := service_name_array[len(service_name_array)-1]
-		fmt.Printf("name: %s\n", service_name)
 		command := fmt.Sprintf(execPath_category_map[exec_path].command+"%s", service_name)
-		fmt.Printf("command: %s\n", command)
 		err := WriteCommandInStore(c, service_name, command)
 		if err != nil {
 			return execPath_category_map, err
