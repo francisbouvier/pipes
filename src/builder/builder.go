@@ -11,7 +11,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 
-	"github.com/francisbouvier/pipes/src/engine/docker"
+	"github.com/francisbouvier/pipes/src/orch/swarm"
 	"github.com/francisbouvier/pipes/src/discovery"
 )
 
@@ -60,7 +60,10 @@ func BuildDockerImagesFromExec(args []string, c *cli.Context) (err error){ //exe
 		if len(arg_split_array) > 1 { 
 			input_mode = arg_split_array[1]
 		}
-		WriteModeInStore(c, service_name, input_mode)
+		err = WriteModeInStore(c, service_name, input_mode)
+		if err != nil {
+			return err
+		}
 	}
 	
 	execs_map, err := AssociateExecWithType(c, exec_paths)
@@ -73,7 +76,7 @@ func BuildDockerImagesFromExec(args []string, c *cli.Context) (err error){ //exe
 	for execOriginalPath, category := range execs_map {
 		tmp_dir_path, new_exec_path, exec_file_name := SetTempDirectory(execOriginalPath)
 		imageName := CreateDockerfile(tmp_dir_path, new_exec_path, exec_file_name, category)
-		err = DockerBuild(tmp_dir_path, imageName)
+		err = DockerBuild(c, tmp_dir_path, imageName)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -206,11 +209,21 @@ func CreateDockerfile(tmp_dir_path string, new_exec_path string, exec_file_name 
 }
 
 // Launch a docker build from a Dockerfile
-func DockerBuild(tmp_dir_path, imageName string) (err error) {
+func DockerBuild(c *cli.Context, tmp_dir_path, imageName string) (err error) {
+	// Get store from cli
+	st, err := discovery.GetStore(c)
+	if err != nil {
+		return err
+	}
+
+	// Get swarm from store
+	sw, err := swarm.New(st)
+	if err != nil {
+		return err
+	}
+
 	fmt.Printf("Building Docker image named '%s' from Dockerfile located at %s/Dockerfile\n", imageName, tmp_dir_path)
-	d, e := docker.New("tcp://192.168.59.103:2375", "")
-	check(e)
-	_, err = d.BuildImg(imageName, tmp_dir_path)
+	_, err = sw.BuildImg(imageName, tmp_dir_path)
 	check(err)
 	return
 }
