@@ -8,14 +8,14 @@ import (
 	"io/ioutil"
 	"log"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 )
 
-const (
-	key  = "6d32152b52155dcc7d7315651a50c"
-	addr = "https://api.meetup.com/2/open_events"
-)
+const addr = "https://api.meetup.com/2/open_events"
+
+var key = os.Environ()["MEETUP_KEY"]
 
 func getDescriptions(body []byte) ([]string, error) {
 	des := []string{}
