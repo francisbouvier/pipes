@@ -15,7 +15,7 @@ import (
 
 const addr = "https://api.meetup.com/2/open_events"
 
-var key = os.Environ()["MEETUP_KEY"]
+var key = os.Getenv("MEETUP_KEY")
 
 func getDescriptions(body []byte) ([]string, error) {
 	des := []string{}
