@@ -1,12 +1,13 @@
 #! /usr/bin/env python3
 # -*- coding:utf-8 -*-
 
+import os
 import sys
 import json
 import datetime
 from urllib import parse, request
 
-key = "2ef2491bc08f6c00eba4c413a19089d3"
+key = os.getenv("ENTITIES_KEY")
 
 
 def analyze(text, entity_type):
