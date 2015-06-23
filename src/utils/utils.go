@@ -1,10 +1,63 @@
 package utils
 
 import (
+	"errors"
+	"io/ioutil"
 	"math/rand"
+	"net/http"
+	"os"
+	"os/user"
+	"path"
 	"strings"
 	"time"
+
+	log "github.com/Sirupsen/logrus"
 )
+
+func download(p string, url string) error {
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	log.Debugln("Download status code:", resp.StatusCode)
+	if resp.StatusCode == 404 {
+		return errors.New("Does not exist")
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(p, body, 0755)
+}
+
+func getDir() (string, error) {
+	u, err := user.Current()
+	if err != nil {
+		return "", err
+	}
+	dir := path.Join(u.HomeDir, ".pipes", "tools")
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		if err = os.MkdirAll(dir, 0755); err != nil {
+			return "", err
+		}
+	}
+	return dir, nil
+}
+
+func GetTool(name, url string) (p string, err error) {
+	dir, err := getDir()
+	if err != nil {
+		return
+	}
+	p = path.Join(dir, name)
+	if _, err := os.Stat(p); os.IsNotExist(err) {
+		log.Infof("Downloading %s from %s ...", name, url)
+		err = download(p, url)
+		return p, err
+	}
+	return
+}
 
 func PickServer(pool []string) int {
 	// Chose randomly
